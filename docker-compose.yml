@@ -1,0 +1,23 @@
+version: "3"
+services:
+  db:
+    image: postgres:16.3-alpine
+    container_name: postgres-db
+    restart: always
+    init: true
+    volumes:
+      - type: bind
+        source: ${PWD}/data/db
+        target: /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=testdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  adminer:
+    image: adminer:4.8.1 #database management tool
+    restart: always
+    ports:
+      - 8080:8080

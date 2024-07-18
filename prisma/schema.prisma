@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  // field level attribute starts with single @
+  // model level attributes starts with double @@
+  // DataType ending with ? can also have NULL value
+
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  name  String @map("firstName") // change the column name in database to full_name
+  role  Role?  @default(USER) // role can have these values: USER, ADMIN, NULL
+
+  Profile Profile? // to have relation with Profile model
+  Posts   Post[]
+
+  // @@id([id, email]) // composite primary key
+  // @@unique([name, role]) // composite unique key
+  // @@index([id, email]) // composite index
+  @@map("users") // change the table name in database to users
+}
+
+model Profile {
+  id     Int     @id @default(autoincrement())
+  bio    String?
+  userId Int     @unique
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Post {
+  id         Int        @id @default(autoincrement())
+  authorId   Int
+  title      String
+  noOfLikes  Int        @default(0)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  published  Boolean    @default(false)
+  Categories Category[]
+
+  // when user is deleted, delete all posts assosiated to that user -> onDelete: Cascade
+  Author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  Posts Post[]
+}
